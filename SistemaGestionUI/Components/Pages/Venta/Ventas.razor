@@ -1,0 +1,64 @@
+﻿@page "/ventas"
+@inject VentasService service
+
+<h3>Ventas</h3>
+
+<div class="container">
+    <div class="row">
+        <div class="col-6">
+            <a href="/venta/new">
+                <button type="button" class="btn btn-success">Crear</button>
+            </a>
+        </div>       
+    </div>
+    <div class="row">
+        <table class="table">
+            <thead class="thead-dark">
+                <tr>                  
+                    <th>Id</th>
+                    <th>Comentarios</th>
+                    <th>Usuario</th>                    
+                    <th></th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (Venta venta in ventas)
+                {
+                    <tr>
+                        <td>@venta.Id</td>
+                        <td>@venta.Comentarios</td>
+                        <td>@venta.UsuarioId</td>
+                        <td>
+                            <a href="/venta/@venta.Id/Editar">Editar</a>
+                        </td>
+                        <td>
+                            <button @onclick="@(() => EliminarVenta(venta.Id))" class="btn btn-danger">
+                                Eliminar
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+
+@code {
+    private List<Venta> ventas = [];
+
+    protected override async Task OnInitializedAsync()
+    {       
+        ventas = await service.ListarVentas();
+    }
+
+    public async Task EliminarVenta(int id)
+    {
+        await service.EliminarVenta(id);
+        ventas = await service.ListarVentas();
+    }
+    
+}
+

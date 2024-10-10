@@ -1,0 +1,105 @@
+﻿@inject NavigationManager NavigationManager
+@inject VentasService Service
+@inject ProductosService ServicePro
+@inject UsuariosService ServiceUsuario
+@inject ProductosVendidosService ProductosVendidosService
+
+<h3>Formulario de Venta</h3>
+                    
+<EditForm Model="Venta" OnValidSubmit="CreateOrUpdateVenta" FormName="venta-form">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="form-group">
+        <label for="comentarios">
+            Comentarios
+            <InputTextArea type="text" class="form-control" id="nombre" @bind-Value="Venta.Comentarios" />
+        </label>
+    </div>
+
+    <div class="form-group">
+        <label for="idUsuario">
+            Seleccionar Usuario
+            <InputSelect class="form-control" id="idUsuario" @bind-Value="Venta.UsuarioId">
+                <option value="">Seleccione un usuario</option>
+                @foreach (var usuario in usuariosDisponibles)
+                {
+                    <option value="@usuario.Id">@usuario.Nombre (@usuario.Id)</option>
+                }
+            </InputSelect>
+        </label>
+    </div>
+  
+    <div class="row">
+        <table class="table">
+            <thead class="thead-dark">
+                <tr>
+                    <th>Descripcion</th>
+                    <th>Precio de Venta</th>
+                    <th>Stock</th>
+                    <th>Cantidad</th>
+                    <th></th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (Producto producto in productosDisponibles)
+                {
+                    <tr>                                                
+                        <td>@producto.Descripcion</td>
+                        <td>@producto.PrecioVenta</td>
+                        <td>@producto.Stock</td>                                                
+                        <td>
+                            <InputNumber type="number" class="form-control" id="idProducto" width=50% @bind-Value="producto.Cantidad" min=0 max="@producto.Stock" />                            
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="form-group mt-4">        
+        <button type="submit" class="btn btn-primary mr-2">Guardar</button>
+        <button type="button" class="btn btn-dark ml-2" @onclick="Cancel">Cancelar</button>
+    </div>
+
+</EditForm>
+
+@code {
+
+    [Parameter]
+    public Venta? Venta { get; set; }
+    public List<Producto> productosDisponibles = new List<Producto>();
+    public List<Usuario> usuariosDisponibles = new List<Usuario>();
+        
+    protected override async Task OnInitializedAsync()
+    {        
+        usuariosDisponibles = await ServiceUsuario.ListUsers();
+        
+        var productos = await ServicePro.ListProducts();
+        productosDisponibles = productos.Where(p => p.Stock > 0).ToList();
+               
+    }
+
+    public async Task CreateOrUpdateVenta()
+    {
+  
+        if (Venta.Id > 0)
+        {
+            await Service.ModificarVenta(Venta.Id, Venta);
+        }
+        else
+        {
+            await Service.CrearVenta(Venta);            
+        }
+
+        NavigationManager.NavigateTo("/ventas");
+    }
+
+    private void Cancel()
+    {
+        NavigationManager.NavigateTo("/ventas");
+    }
+
+   
+}
